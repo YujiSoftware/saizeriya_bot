@@ -26,9 +26,11 @@ public class Main {
 
     private static final Path CACHE_FILE = Path.of("saizeriya.txt");
 
-    private static Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, TwitterException, ApiException {
+        logger.info("Start {}", Main.class);
+
         Set<String> used = new HashSet<>();
         if (Files.exists(CACHE_FILE)) {
             used.addAll(Files.readAllLines(CACHE_FILE));
@@ -56,6 +58,8 @@ public class Main {
                 writer.flush();
             }
         }
+
+        logger.info("End {}", Main.class);
     }
 
     private static void tweet(String title, List<Path> images) throws TwitterException, ApiException {
