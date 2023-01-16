@@ -106,9 +106,9 @@ public class Main {
 
             TweetCreateRequest request = new TweetCreateRequest();
             if (list.size() == 1) {
-                request.setText(title);
+                request.setText(String.format("%s\n%s", title, url));
             } else {
-                request.setText(String.format("%s (%d/%d)", title, (i + 1), list.size()));
+                request.setText(String.format("%s (%d/%d)\n%s", title, (i + 1), list.size(), url));
             }
             request.setMedia(requestMedia);
 
