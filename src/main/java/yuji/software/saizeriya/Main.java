@@ -28,7 +28,7 @@ public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws IOException, TwitterException, ApiException {
+    public static void main(String[] args) throws IOException {
         logger.info("Start {}", Main.class);
 
         Set<String> used = new HashSet<>();
@@ -43,26 +43,29 @@ public class Main {
                     continue;
                 }
 
-                logger.info("News [title: '{}', url: '{}']", news.title(), news.url());
+                logger.info("Found news [title: '{}', url: '{}']", news.title(), news.url());
 
                 if (!used.isEmpty()) {
                     List<Path> images = PDFImage.create(new URL(news.url()));
                     for (Path image : images) {
-                        logger.info("Image [path: '{}']", image);
+                        logger.info("Successfully convert the image [path: '{}']", image);
                     }
-                    tweet(news.title(), images);
+                    tweet(news.url(), news.title(), images);
                 }
 
                 writer.write(news.url());
                 writer.newLine();
                 writer.flush();
             }
+        } catch (Exception e) {
+            logger.error("Failed.", e);
+            System.exit(1);
         }
 
         logger.info("End {}", Main.class);
     }
 
-    private static void tweet(String title, List<Path> images) throws TwitterException, ApiException {
+    private static void tweet(String url, String title, List<Path> images) throws TwitterException, ApiException {
         // 画像のアップロードは、Twitter4j (v1) で行う必要がある
         Twitter twitter = Twitter.newBuilder()
                 .oAuthConsumer(
@@ -101,6 +104,8 @@ public class Main {
             TweetCreateRequestMedia requestMedia = new TweetCreateRequestMedia();
             for (Path image : list.get(i)) {
                 UploadedMedia media = tweets.uploadMedia(image.toFile());
+                logger.info("Successfully upload the image. [id: " + media.getMediaId() + "].");
+
                 requestMedia.addMediaIdsItem(Long.toString(media.getMediaId()));
             }
 
