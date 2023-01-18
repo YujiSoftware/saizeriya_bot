@@ -31,6 +31,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
         logger.info("Start {}", Main.class);
 
+        TwitterToken token = TwitterToken.load();
+
         Set<String> used = new HashSet<>();
         if (Files.exists(CACHE_FILE)) {
             used.addAll(Files.readAllLines(CACHE_FILE));
@@ -50,13 +52,15 @@ public class Main {
                     for (Path image : images) {
                         logger.info("Successfully convert the image [path: '{}']", image);
                     }
-                    tweet(news.url(), news.title(), images);
+                    tweet(token, news.url(), news.title(), images);
                 }
 
                 writer.write(news.url());
                 writer.newLine();
                 writer.flush();
             }
+
+            token.save();
         } catch (Exception e) {
             logger.error("Failed.", e);
             System.exit(1);
@@ -65,26 +69,27 @@ public class Main {
         logger.info("End {}", Main.class);
     }
 
-    private static void tweet(String url, String title, List<Path> images) throws TwitterException, ApiException {
+    private static void tweet(TwitterToken token, String url, String title, List<Path> images) throws TwitterException, ApiException {
         // 画像のアップロードは、Twitter4j (v1) で行う必要がある
         Twitter twitter = Twitter.newBuilder()
                 .oAuthConsumer(
-                        System.getenv("TWITTER_OAUTH_CONSUMER_KEY"),
-                        System.getenv("TWITTER_OAUTH_CONSUMER_SECRET")
+                        token.getOAuthConsumerKey(),
+                        token.getOAuthConsumerSecret()
                 )
                 .oAuthAccessToken(
-                        System.getenv("TWITTER_OAUTH_ACCESS_TOKEN"),
-                        System.getenv("TWITTER_OAUTH_ACCESS_TOKEN_SECRET")
+                        token.getOAuthAccessToken(),
+                        token.getOAuthAccessTokenSecret()
                 )
                 .build();
         TweetsResources tweets = twitter.v1().tweets();
 
         // ツイートは、twitter-api-java-sdk で行う必要がある
         TwitterCredentialsOAuth2 credentials = new TwitterCredentialsOAuth2(
-                System.getenv("TWITTER_OAUTH2_CLIENT_ID"),
-                System.getenv("TWITTER_OAUTH2_CLIENT_SECRET"),
-                System.getenv("TWITTER_OAUTH2_ACCESS_TOKEN"),
-                System.getenv("TWITTER_OAUTH2_REFRESH_TOKEN")
+                token.getOAuth2ClientID(),
+                token.getOAuth2ClientSecret(),
+                token.getOAuth2AccessToken(),
+                token.getOAuth2RefreshToken(),
+                true
         );
         TwitterApi api = new TwitterApi(credentials);
 
