@@ -92,6 +92,10 @@ public class Main {
                 true
         );
         TwitterApi api = new TwitterApi(credentials);
+        api.addCallback(accessToken -> {
+            token.setOAuth2AccessToken(accessToken.getAccessToken());
+            token.setOAuth2RefreshToken(accessToken.getRefreshToken());
+        });
 
         // 4枚ずつに分割
         List<List<Path>> list = new ArrayList<>();
